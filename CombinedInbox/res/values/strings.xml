@@ -4,5 +4,7 @@
     <string name="app_name">CombinedInbox</string>
     <string name="hello_world">Hello world!</string>
     <string name="menu_settings">Settings</string>
+    <string name="app_id">453630638019624</string>
+    <string name="title_activity_inbox">Inbox</string>
 
 </resources>
