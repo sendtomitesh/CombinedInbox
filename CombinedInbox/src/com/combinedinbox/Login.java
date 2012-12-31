@@ -29,16 +29,16 @@ public class Login extends Activity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.login);
 		
-		fbPerm.add("offline_access");
+		fbPerm.add("read_stream");
 		fbPerm.add("publish_stream");
-		fbPerm.add("photo_upload");
-		fbPerm.add("publish_actions");
+		
 		lb =(LoginButton)findViewById(R.id.login_button);
 		lb.setPublishPermissions(fbPerm);
 		uiHelper = new UiLifecycleHelper(this, callback);
 		uiHelper.onCreate(savedInstanceState);
 		initializelogin();
 	}
+	
 
 	private void initializelogin()
 	{

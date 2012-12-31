@@ -1,14 +1,16 @@
 package com.combinedinbox;
 
+import com.facebook.HttpMethod;
 import com.facebook.Request;
 import com.facebook.Response;
 import com.facebook.Session;
-import com.facebook.model.GraphUser;
-
-
+import com.facebook.android.FbDialog;
+import com.facebook.model.GraphObject;
 import android.os.Bundle;
+import android.widget.ListAdapter;
+import android.widget.ListView;
+import android.widget.Toast;
 import android.app.Activity;
-import android.view.Menu;
 
 public class Inbox extends Activity {
 
@@ -16,47 +18,59 @@ public class Inbox extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_inbox);
-		getFacebookMsgs();
+		//get FBfeeds
+		getFBFeeds(Session.getActiveSession());
 		
 	}
-	private void getFacebookMsgs()
+	
+	
+	private void loadMsgs()
 	{
-		Session s = Session.getActiveSession();
-		makeMeRequest(s);
+		ListView msgLv= (ListView)findViewById(R.id.listView1);
+		Toast.makeText(getApplicationContext(), FBmsgs.getNewsFeedsList().size()+"", Toast.LENGTH_LONG).show();
+		MsgListAdapter adapter = new MsgListAdapter(getApplicationContext(), FBmsgs.getNewsFeedsList());
+		msgLv.setAdapter(adapter);
 	}
 
-	private void makeMeRequest(final Session session) {
+	private void getFBFeeds(final Session session) {
 	    // Make an API call to get user data and define a 
 	    // new callback to handle the response.
 		
-	    Request request = Request.newMeRequest(session, 
-	            new Request.GraphUserCallback() {
-	        @Override
-	        public void onCompleted(GraphUser user, Response response) {
-	            // If the response is successful
-	            if (session == Session.getActiveSession()) {
-	                if (user != null ) {
-	                    // Set the id for the ProfilePictureView
-	                    // view that in turn displays the profile picture.
-	                		                	
-	                
-	                }
-	            }
-	            if (response.getError() != null) {
-	                // Handle errors, will do so later.
-	            }
-	        }
-
-			
-	    });
-	    request.executeAsync();
+		String fqlQuery = "SELECT post_id,description FROM stream WHERE filter_key in (SELECT filter_key FROM stream_filter WHERE uid = me() AND type = 'newsfeed')";
+	        Bundle params = new Bundle();
+	        params.putString("q", fqlQuery);
+	        
+	        Request request = new Request(session,
+	            "/fql",                         
+	            params,                         
+	            HttpMethod.GET,                 
+	            new Request.Callback(){       
+	        		
+	                public void onCompleted(Response response) {
+	                	
+	                	extractFeeds(response);
+	                	
+	                  
+	                }                  
+	        }); 
+	        Request.executeBatchAsync(request);                
+		
 	} 
 	
-	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {
-		// Inflate the menu; this adds items to the action bar if it is present.
-		getMenuInflater().inflate(R.menu.activity_inbox, menu);
-		return true;
+	private void extractFeeds(Response s)
+	{
+		 GraphObject graphObject =s.getGraphObject();
+		 if (graphObject != null)
+         {
+             if (graphObject.getProperty("data") != null)
+             {
+                 
+                     String json = graphObject.getProperty("data").toString();
+                     FBmsgs.setnewsFeedsList(json);
+                     loadMsgs();
+             }
+         }
 	}
+	
 
 }
